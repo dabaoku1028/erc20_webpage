@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  	<title>AHC</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="style.css">
+
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.3.4/web3.min.js"></script>
+
+	</head>
+	<body>
+	<section class="ftco-section">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-md-6 text-center mb-5">
+					<h2 class="heading-section">Aaron Huang Coin(AHC) Faucet!</h2>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<div class="table-wrap">
+						<table class="table table-bordered table-dark table-hover">
+						  <tbody>
+						    <tr>
+						      <td>Aaron Huang Coin Address: </td>
+						      <td id="AHC_contract_address"></td>
+						    </tr>
+						    <tr>
+						      <td>My Accounts Address: </td>
+						      <td id="my_account_address"></td>
+						    </tr>
+						    <tr>
+						      <td>My ETH Balance :</td>
+						      <td id="ETH_balance"></td>
+						    </tr>
+						    <tr>
+						      <td>My AHC Balance :</td>
+						      <td id="AHC_balance"></td></td>
+						    </tr>
+						    <tr>
+						      <td>Available Amount of AHC：</td>
+						      <td id="Available_AHC"></td>
+						    </tr>
+						  </tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="row justify-content-center">
+				<a class="btn btn-warning btn-xl text-uppercase" style="color: white;" onclick="withdraw()">Take Free 6 AHC!!!</a>
+			</div>
+		</div>
+	</section>
+	</body>
+</html>
+
+<script>
+
+	let myContract;
+	let coinbase;
+	let balance;
+
+	if (typeof web3 !== 'undefined') {
+	  web3 = new Web3(web3.currentProvider);
+	} else {
+	  // Set the provider you want from Web3.providers
+	  web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+	}
+
+	printPostsToConsole();
+
+	async function printPostsToConsole() {
+
+		web3.eth.requestAccounts();
+
+		//取得帳號
+		coinbase = await web3.eth.getCoinbase();
+		//取得帳號餘額
+		balance = await web3.eth.getBalance(coinbase);
+
+		$("#my_account_address").text(coinbase);
+		$("#ETH_balance").text(web3.utils.fromWei(balance));  //wei 轉換成 ether web3.utils.fromWei()
+
+		var contract_address = "0x21A6b1B82Da8B26826E12D53339746CbA2be1eaF";
+		var contract_abi = [ { "constant": true, "inputs": [], "name": "name", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "totalSupply", "outputs": [ { "name": "", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [ { "name": "", "type": "uint8" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [ { "name": "tokenOwner", "type": "address" } ], "name": "balanceOf", "outputs": [ { "name": "balance", "type": "uint256" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [ { "name": "", "type": "address" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [ { "name": "", "type": "string" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "to", "type": "address" }, { "name": "tokens", "type": "uint256" } ], "name": "transfer", "outputs": [ { "name": "success", "type": "bool" } ], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "payable": true, "stateMutability": "payable", "type": "fallback" }, { "anonymous": false, "inputs": [ { "indexed": true, "name": "from", "type": "address" }, { "indexed": true, "name": "to", "type": "address" }, { "indexed": false, "name": "tokens", "type": "uint256" } ], "name": "Transfer", "type": "event" } ];
+		myContract = new web3.eth.Contract(contract_abi, contract_address);
+
+		$("#AHC_contract_address").text(contract_address);
+
+		balanceOfPersonalAHC();
+		balanceOfAHC();
+	};
+
+	async function getAccountBalance(){
+		balance = await web3.eth.getBalance(coinbase);
+		$("#ETH_balance").text(web3.utils.fromWei(balance));
+	}
+
+	function balanceOfPersonalAHC(){
+		myContract.methods.balanceOf(coinbase).call({from: '0xcd04a3f0fea0b15825ef5e5d9264f65038873bc5'})
+		.then(function(result){
+			$("#AHC_balance").text(web3.utils.fromWei(result));
+		});
+	}
+
+	function balanceOfAHC() {
+		myContract.methods.balanceOf("0xcd04a3f0fea0b15825ef5e5d9264f65038873bc5").call({from: '0xcd04a3f0fea0b15825ef5e5d9264f65038873bc5'})
+		.then(function(result){
+		    $("#Available_AHC").text(web3.utils.fromWei(result));
+		});
+	}
+
+	function withdraw(){
+		myContract.methods.transfer(coinbase, 0).send({from: coinbase})
+		.then(function(result){
+			balanceOfAHC();
+			balanceOfPersonalAHC();
+			getAccountBalance();
+		});
+	}
+
+</script>
